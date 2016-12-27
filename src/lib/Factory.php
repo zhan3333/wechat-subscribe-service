@@ -225,6 +225,14 @@ class Factory
     {
         if (empty(self::$wechat)) {
             $wechatConfig = Factory::getConfig('wechat', 'wechat');
+            // 设置缓存
+            $redisConfig = Factory::getConfig('redis', 'master');
+            $cacheDriver = new OrmCache\RedisCache();
+            $redis = new \Redis();
+            $redis->connect($redisConfig['host'], $redisConfig['port']);
+            $redis->select($redisConfig['index']);
+            $cacheDriver->setRedis($redis);
+            $wechatConfig['cache'] = $cacheDriver;
             self::$wechat = new Application($wechatConfig);
         }
         return self::$wechat;

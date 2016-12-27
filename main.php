@@ -169,7 +169,7 @@ class main extends Hprose\Swoole\WebSocket\Server
     public function swooleStart(swoole_websocket_server $server)
     {
         // 打印url与master_pid信息
-        echo APP_PREFIX . ' swoole start: ' . $this->host . ':' . $this->port
+        echo '[' . APP_PREFIX .']' . PHP_EOL . ' swoole start: ' . $this->host . ':' . $this->port
             . ' , on time: '. date('Y-m-d H:i:s')
             . ' , on pid: ' . $server->master_pid
             . PHP_EOL;
@@ -215,9 +215,9 @@ class main extends Hprose\Swoole\WebSocket\Server
         if (!empty($request->cookie) ) $_COOKIE = $request->cookie;
         if (!empty($request->server) ) $_SERVER = array_change_key_case($request->server, CASE_UPPER);
         //获取非urlencode-form表单的POST原始数据，现用于接收微信支付的回调结果
-//        if (!empty($request->rawContent())) {
-//            $GLOBALS['php://input'] = $request->rawContent();
-//        }
+        if (!empty($request->rawContent())) {
+            $GLOBALS['php://input'] = $request->rawContent();
+        }
         $_REQUEST = array_merge($_GET, $_POST, $_COOKIE);
 
         /**

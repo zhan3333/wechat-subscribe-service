@@ -1,5 +1,14 @@
 {
+  "name": "zhan3333/wechat-subscribe-service",
+  "description": "微信订阅号服务端",
+  "authors": [
+    {
+      "name": "zhan3333",
+      "email": "zhanand33@gmail.com"
+    }
+  ],
   "require": {
+    "php": ">=5.6.0",
     "monolog/monolog": "1.21.0",
     "doctrine/orm": "2.5.5",
     "hprose/hprose-swoole": "2.0.7",

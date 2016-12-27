@@ -9,6 +9,8 @@
 namespace App\Module\Juhe;
 
 
+use App\Factory;
+
 class Joke
 {
     private $AppKey = null;
@@ -124,6 +126,25 @@ class Joke
         ]);
         if (empty($result)) throw new \Exception('查询异常');
         return $result;
+    }
+
+    /**
+     * 随机获取一条joke
+     * @param string $type
+     * @return string
+     * @throws \Exception
+     */
+    public function getJoke($type = '')
+    {
+        if (empty($type) || $type != 'pic') $type = '';
+        $result = $this->getRandJoke($type);
+        if (!empty($result->body)) $body = json_decode($result->body, true);
+        if (isset($body['error_code']) && $body['error_code'] == 0) {
+            $jokeContent = $body['result'];
+        } else {
+            throw new \Exception('获取信息失败');
+        }
+        return $jokeContent;
     }
 
     /**

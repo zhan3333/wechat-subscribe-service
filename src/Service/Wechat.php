@@ -230,6 +230,17 @@ class Wechat extends Base
      */
     private static function textDo($message, &$retMsg)
     {
+        $content = $message->Content;
+        try {
+            if ($content == '笑话') {
+                $joke = Factory::JuheJoke()->getJoke();
+                $retMsg = $joke[0]['content'];
+            } else {
+                $retMsg = "1. 回复 `笑话` 查看一条笑话";
+            }
+        } catch (\Exception $e) {
+            $retMsg = $e->getMessage();
+        }
     }
 
     /**
