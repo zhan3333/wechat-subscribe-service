@@ -315,7 +315,6 @@ class main extends Hprose\Swoole\WebSocket\Server
         $this->on('workerStart', [$this, 'workerStart']);
         $this->on('start', [$this, 'swooleStart']);
         $this->on('managerStart', [$this, 'managerStart']);
-        $this->publish('time');
         parent::start();
     }
 }
