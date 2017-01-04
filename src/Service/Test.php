@@ -538,4 +538,18 @@ class Test
             'table' => $result
         ];
     }
+
+    /**
+     * @default enable
+     * @param string $openid
+     * @return array
+     */
+    public static function testOpenid2UserId($openid)
+    {
+        $wr = RepositoryClass::WechatAccount();
+        $userId = $wr->openid2UserId($openid);
+        return [
+            'userId' => $userId
+        ];
+    }
 }

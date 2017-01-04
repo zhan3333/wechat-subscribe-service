@@ -10,6 +10,7 @@ namespace App;
 use App\Entities\NormalAccountRepository;
 use App\Entities\TestRepository;
 use App\Entities\UserRepository;
+use App\Entities\WechatAccountRepository;
 
 /**
  * 获取repository对象
@@ -40,5 +41,13 @@ class RepositoryClass
     public static function Test()
     {
         return Factory::em()->getRepository(':Test');
+    }
+
+    /**
+     * @return WechatAccountRepository
+     */
+    public static function WechatAccount()
+    {
+        return Factory::em()->getRepository(':WechatAccount');
     }
 }

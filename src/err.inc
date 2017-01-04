@@ -56,6 +56,7 @@ const E_WECHAT_MATERIAL_NOT_EXIST_TYPE = 200006;    // 不存在的永久素材�
 const E_WECHAT_PAYMENT_GET_ORDER_FAIL = 200007;     // 生成微信支付订单失败
 const E_WECHAT_INVALID_CODE = 200008;               // 无效的code
 const E_WECHAT_CODE_LOGIN_FAIL = 200009;            // code码登陆失败
+const E_WECHAT_RETURN_ERROR = 200010;               // 微信返回错误
 
 $err = [
     0 => '执行成功',
@@ -118,5 +119,6 @@ $err = [
     E_WECHAT_PAYMENT_GET_ORDER_FAIL => '生成微信支付订单失败',
     E_WECHAT_INVALID_CODE           => '无效的code',
     E_WECHAT_CODE_LOGIN_FAIL        => 'code码登陆失败',
+    E_WECHAT_RETURN_ERROR => '微信返回错误',
 ];
 return $err;

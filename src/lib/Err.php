@@ -61,4 +61,14 @@ class Err
     {
         return self::$lastErrCode;
     }
+
+    /**
+     * 添加一条自定义错误信息
+     * @param integer   $errNo
+     * @param string    $errMsg
+     */
+    public static function addErrMsg($errNo, $errMsg)
+    {
+        self::$errMsg[$errNo] = $errMsg;
+    }
 }

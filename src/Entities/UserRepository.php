@@ -99,8 +99,8 @@ class UserRepository extends EntityRepository
         $em->beginTransaction();
         try {
             $addUserData = $info;
-            $info['userType'] = User::USER_TYPE_ADMIN;
-            $info['accountType'] = User::ACCOUNT_TYPE_NORMAL;
+            $addUserData['userType'] = User::USER_TYPE_ADMIN;
+            $addUserData['accountType'] = User::ACCOUNT_TYPE_NORMAL;
             $userId = self::addUser($addUserData);
             if (empty($userId)) throw new \Exception('创建用户失败', E_USER_CREATE_FAIL);
             $normalAccountId = RepositoryClass::NormalAccount()->addNormalAccount([
@@ -115,6 +115,41 @@ class UserRepository extends EntityRepository
             $em->rollback();
             Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
             return Err::setLastErr($e->getCode());
+        }
+    }
+
+    // 添加微信账号
+
+    /**
+     * @param $wechatInfo
+     * @param array $userInfo
+     * @return bool
+     */
+    public function addWechat($wechatInfo, $userInfo = [])
+    {
+        $em = Factory::em();
+        $em->beginTransaction();
+        try {
+            $addUserData = $userInfo;
+            $addUserData['userType'] = User::USER_TYPE_NORMAL;
+            $addUserData['accountType'] = User::ACCOUNT_TYPE_WECHAT;
+            $userId = self::addUser($addUserData);
+            if (empty($userId)) throw new \Exception('创建用户失败');
+
+            $WechatAccount = new WechatAccount();
+            foreach ($wechatInfo as $key => $value) {
+                $WechatAccount->$key = $value;
+            }
+            $WechatAccount->userId = $userId;
+            $WechatAccount->postTime = date_create();
+            $wechatAccountId = RepositoryClass::WechatAccount()->addWechatAccount($WechatAccount);
+            if (empty($wechatAccountId)) throw new \Exception('创建微信账号失败');
+            $em->commit();
+            return true;
+        } catch (\Exception $e) {
+            $em->rollback();
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
+            return Err::setLastErr(E_ADD_DATA_FAIL);    // 添加数据失败
         }
     }
 

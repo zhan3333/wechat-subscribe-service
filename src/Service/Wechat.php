@@ -12,6 +12,7 @@ namespace App\Service;
 use App\Err;
 use App\Factory;
 use App\Module\Wechat\MyPayment;
+use App\RepositoryClass;
 use App\Util;
 use EasyWeChat\Message\Article;
 use EasyWeChat\Message\News;
@@ -168,6 +169,30 @@ class Wechat extends Base
      */
     private static function eventSubscribe($message, &$retMsg)
     {
+        $openid = $message->FromUserName;
+        if (empty($openid)) return [];
+        $ur = RepositoryClass::User();
+        $wr = RepositoryClass::WechatAccount();
+        $userId = $wr->openid2UserId($openid);
+        if (empty($userId)) {
+            // 要写入WechatAccount表中的数据
+            $wechatInfo = [
+                'openid' => $openid
+            ];
+            $userInfo = [];
+            $ur->addWechat($wechatInfo, $userInfo);
+            $userId = $wr->openid2UserId($openid);
+            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+                "userId is $userId"
+            ]);
+
+            if (!empty($userId)) {
+                // 延时获取用户微信数据
+                Factory::swoole()->after(1, function () use ($userId) {
+                    self::getUserWechatInfo($userId);
+                });
+            }
+        }
     }
 
     /**
@@ -326,11 +351,15 @@ class Wechat extends Base
     {
     }
 
+    /**
+     * @param $message
+     * @param $regMsg
+     */
     private static function defaultDo($message, &$regMsg)
     {
     }
 
-    // 菜单相关操作
+    // 菜单相关操作 需要已认证订阅号或公众号
 
     /**
      * 添加一个菜单
@@ -340,17 +369,22 @@ class Wechat extends Base
      */
     public static function addMenu($buttons = [])
     {
-        $menu = Factory::wechat()->menu;
-        $addRet = $menu->add($buttons);
-        if (!isset($addRet['errcode'])) {
-            // 未知错误
-            return Err::setLastErr(E_SYS_ERROR); // 系统错误
-        } else {
-            if ($addRet['errcode'] !== 0) return Err::setLastErr($addRet['errcode']);
+        try {
+            $menu = Factory::wechat()->menu;
+            $addRet = $menu->add($buttons);
+            if (!isset($addRet['errcode'])) {
+                // 未知错误
+                return Err::setLastErr(E_SYS_ERROR); // 系统错误
+            } else {
+                if ($addRet['errcode'] !== 0) return Err::setLastErr($addRet['errcode']);
+            }
+            return [
+                'result' => true
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
+            return Err::setLastErr(E_WECHAT_RETURN_ERROR);
         }
-        return [
-            'result' => true
-        ];
     }
 
     /**
@@ -366,9 +400,8 @@ class Wechat extends Base
                 'result' => $menus
             ];
         } catch (\Exception $e) {
-            return [
-                'result' => []
-            ];
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
+            return Err::setLastErr(E_WECHAT_RETURN_ERROR);
         }
 
 
@@ -382,24 +415,30 @@ class Wechat extends Base
      */
     public static function deleteMenu($menuId = 0)
     {
-        $menu = Factory::wechat()->menu;
-        if (empty($menuId)) {
-            $deleteRet = $menu->destroy();
-        } else {
-            $deleteRet = $menu->destroy($menuId);
+        try {
+            $menu = Factory::wechat()->menu;
+            if (empty($menuId)) {
+                $deleteRet = $menu->destroy();
+            } else {
+                $deleteRet = $menu->destroy($menuId);
+            }
+            if (!isset($deleteRet['errcode'])) {
+                // 未知错误
+                return Err::setLastErr(E_SYS_ERROR); // 系统错误
+            } else {
+                if ($deleteRet['errcode'] !== 0) return Err::setLastErr($deleteRet['errcode']);
+            }
+            return [
+                'result' => true
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
+            return Err::setLastErr(E_WECHAT_RETURN_ERROR);
         }
-        if (!isset($deleteRet['errcode'])) {
-            // 未知错误
-            return Err::setLastErr(E_SYS_ERROR); // 系统错误
-        } else {
-            if ($deleteRet['errcode'] !== 0) return Err::setLastErr($deleteRet['errcode']);
-        }
-        return [
-            'result' => true
-        ];
     }
 
-    // 微信支付相关
+    // 微信支付相关 需要已认证公众号权限
+
     /**
      * 接收微信支付回调信息
      * @default enable
@@ -583,22 +622,27 @@ class Wechat extends Base
         return true;
     }
 
-    // 二维码
+    // 获取微信二维码，需要认证公众号权限
 
     /**
      * 获取临时二维码
-     * @default enable
+     * @default disable
      * @param $sceneId
      * @param null $expireSeconds
      * @return array
      */
     public static function getTemporaryQRCode($sceneId, $expireSeconds = null)
     {
-        $qrcode = Factory::wechat()->qrcode;
-        $result = $qrcode->temporary($sceneId, $expireSeconds);
-        return [
-            'result' => Util::obj2Arr($result)
-        ];
+        try {
+            $qrcode = Factory::wechat()->qrcode;
+            $result = $qrcode->temporary($sceneId, $expireSeconds);
+            return [
+                'result' => Util::obj2Arr($result)
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
+            return Err::setLastErr(E_WECHAT_RETURN_ERROR);
+        }
     }
 
     /**
@@ -609,11 +653,62 @@ class Wechat extends Base
      */
     public static function getForeverQRCode($content)
     {
-        $qrcode = Factory::wechat()->qrcode;
-        $result = $qrcode->forever(json_encode($content));
-        return [
-            'result' => Util::obj2Arr($result)
-        ];
+        try {
+            $qrcode = Factory::wechat()->qrcode;
+            $result = $qrcode->forever(json_encode($content));
+            return [
+                'result' => Util::obj2Arr($result)
+            ];
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e, func_get_args()]);
+            return Err::setLastErr(E_WECHAT_RETURN_ERROR);
+        }
     }
 
+    // 用户相关操作
+
+    /**
+     * 根据userId获取微信信息
+     * @param $userId
+     * @return array|mixed
+     */
+    private static function getUserWechatInfo($userId)
+    {
+        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+            $userId . ' promise do ...'
+        ]);
+
+        $wr = RepositoryClass::WechatAccount();
+        $nowWechatInfo = $wr->getWechatAccountByWhere(['userId' => $userId]);
+        if (!empty($nowWechatInfo)) $nowWechatInfo = reset($nowWechatInfo);
+        // 若用户无微信信息，则刷新重新获取写入
+        if (!empty($nowWechatInfo) && empty($nowWechatInfo['nickname']) && !empty($nowWechatInfo['openid'])) {
+            // 未获取到微信信息，将再次获取，并写入到WechatAccount表和UserInfo表中
+
+            $getWechatInfo = self::getUserInfoByOpenid($nowWechatInfo['openid']);
+            if (!empty($getWechatInfo) && !empty($nowWechatInfo)) {
+                $wr->updateWechatAccountByWhere(['userId' => $userId], $getWechatInfo);
+            }
+            $nowWechatInfo = $wr->getWechatAccountByWhere(['userId' => $userId]);
+            if (!empty($nowWechatInfo)) $nowWechatInfo = reset($nowWechatInfo);
+        }
+        return $nowWechatInfo;
+    }
+
+    /**
+     * 根据openid获取用户微信信息
+     * @param $openid
+     * @return array
+     */
+    private static function getUserInfoByOpenid($openid)
+    {
+        try {
+            $user = Factory::wechat()->user;
+            $userInfo = $user->get($openid);
+            return $userInfo;
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+            return ['openid' => $openid];
+        }
+    }
 }

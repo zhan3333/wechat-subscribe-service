@@ -53,12 +53,9 @@ class main extends Hprose\Swoole\WebSocket\Server
     public function workerStart(swoole_websocket_server $server, $worker_id)
     {
         Err::init();
-        Factory::initServer($this);
-        $swoole = $this;
-        $server->tick(1000, function() use ($swoole) {
-            $swoole->push('time', microtime(true));
-        });
+        Factory::initServer($server);
         Factory::initConfig();
+
         if ($worker_id >= $server->setting['worker_num']) {
             echo ' Task ', $worker_id, ' Start', PHP_EOL;
             cli_set_process_title(APP_PREFIX.' task #'.$worker_id);

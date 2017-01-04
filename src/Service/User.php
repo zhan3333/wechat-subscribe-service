@@ -46,10 +46,6 @@ class User extends Base
         $normalAccountInfo = RepositoryClass::NormalAccount()->getNormalAccountByWhere(['login' => $account]);
         if (empty($normalAccountInfo)) return Err::setLastErr(E_USER_ACCOUNT_NOT_EXIST);
         $normalAccountInfo = reset($normalAccountInfo);
-        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-            $normalAccountInfo, $passwd, $account
-        ]);
-
         $sPasswd = empty($normalAccountInfo['passwd'])?'':$normalAccountInfo['passwd'];
         $userId = empty($normalAccountInfo['userId'])?'':$normalAccountInfo['userId'];
         if (empty($sPasswd) || empty($userId)) return Err::setLastErr(E_SYS_ERROR);   // 系统错误
