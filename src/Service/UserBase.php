@@ -9,6 +9,7 @@
 namespace App\Service;
 
 
+use App\Err;
 use App\Factory;
 use App\RepositoryClass;
 use App\Util;
@@ -64,6 +65,18 @@ class UserBase
     }
 
     /**
+     * 退出登陆
+     * @param integer   $userId
+     */
+    public static function loginOut($userId)
+    {
+        Factory::redis()->del(self::USER_LOGIN_TOKEN . $userId);
+        unset($_REQUEST['userId']);
+        unset($_REQUEST['token']);
+        unset($_REQUEST['_uid']);
+    }
+
+    /**
      * 获取客户端所在ip
      * @return string
      */
@@ -83,8 +96,9 @@ class UserBase
     public static function isAdmin()
     {
         $userId = self::getClientUserId();
-        if (empty($userId)) return false;
-        return RepositoryClass::User()->isAdmin($userId);
+        if (empty($userId)) return Err::setLastErr(E_USER_NO_LOGIN);
+        if(empty(RepositoryClass::User()->isAdmin($userId))) return Err::setLastErr(E_USER_NOT_IS_ADMIN);
+        return true;
     }
 
     /**
@@ -94,18 +108,50 @@ class UserBase
     public static function isNormal()
     {
         $userId = self::getClientUserId();
-        if (empty($userId)) return false;
-        return RepositoryClass::User()->isNormal($userId);
+        if (empty($userId)) return Err::setLastErr(E_USER_NO_LOGIN);
+        if (RepositoryClass::User()->isNormal($userId)) return true;
+        return Err::setLastErr(E_USER_NOT_IS_NORMAL);
     }
 
     /**
      * 判断登陆用户是否为超级管理员
+     * @param int $userId
      * @return bool
      */
-    public static function isSuperAdmin()
+    public static function isSuperAdmin($userId = 0)
     {
-        $userId = self::getClientUserId();
-        if (empty($userId)) return false;
-        return RepositoryClass::User()->isSuperAdmin($userId);
+        if (empty($userId)) $userId = self::getClientUserId();
+        if (empty($userId)) return Err::setLastErr(E_USER_NO_LOGIN);
+        $isSuperAdmin = RepositoryClass::User()->isSuperAdmin($userId);
+        if (empty($isSuperAdmin)) return Err::setLastErr(E_USER_NOT_IS_SUPER_ADMIN);
+        return true;
+    }
+
+    /**
+     * 判断是否为普通账户
+     * @param int $userId
+     * @return bool
+     */
+    public static function isNormalAccount($userId = 0)
+    {
+        if (empty($userId)) $userId = self::getClientUserId();
+        if (empty($userId)) return Err::setLastErr(E_USER_NO_LOGIN);
+        $isNormalAccount = RepositoryClass::User()->isNormalAccount($userId);
+        if (empty($isNormalAccount)) return Err::setLastErr(E_USER_ACCOUNT_NOT_IS_NORMAL);
+        return true;
+    }
+
+    /**
+     * 判断是否为微信用户
+     * @param int $userId
+     * @return bool
+     */
+    public static function isWechatAccount($userId = 0)
+    {
+        if (empty($userId)) $userId = self::getClientUserId();
+        if (empty($userId)) return Err::setLastErr(E_USER_NO_LOGIN);
+        $isWechatAccount = RepositoryClass::User()->isWechatAccount($userId);
+        if (empty($isWechatAccount)) return Err::setLastErr(E_USER_ACCOUNT_NOT_IS_WECHAT);
+        return true;
     }
 }

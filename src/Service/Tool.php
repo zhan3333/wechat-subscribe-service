@@ -12,6 +12,11 @@ namespace App\Service;
 use App\Factory;
 use App\Util;
 
+/**
+ * Class Tool
+ * @package App\Service
+ * @default enable
+ */
 class Tool
 {
     /**

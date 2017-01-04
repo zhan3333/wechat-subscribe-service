@@ -9,6 +9,7 @@
 namespace App\Entities;
 
 
+use App\Err;
 use App\Factory;
 use App\RepositoryClass;
 use Doctrine\ORM\EntityRepository;
@@ -27,7 +28,7 @@ class NormalAccountRepository extends EntityRepository
      * @return bool|integer     // 成功返回id，失败返回false
      * @throws \Exception
      */
-    public static function addNormalAccount($data)
+    public function addNormalAccount($data)
     {
         if (empty($data['userId'])) throw new \Exception('用户id不允许为空', E_USER_ID_NOT_ALLOW_AIR);
         if (empty($data['account'])) throw new \Exception('账号不允许为空', E_USER_ACCOUNT_NOT_ALLOW_AIR);
@@ -48,11 +49,39 @@ class NormalAccountRepository extends EntityRepository
     }
 
     /**
+     * 修改数据
+     * @param array $where
+     * @param array $data
+     * @return bool
+     */
+    public function updateNormalAccount($where, $data)
+    {
+        try {
+            $updateRet = NormalAccount::update($where, $data);
+            if (!$updateRet) throw new \Exception('修改账号信息失败');
+            return true;
+        } catch (\Exception $e) {
+            return Err::setLastErr(E_UPDATE_DATA_FAIL);
+        }
+    }
+
+    /**
+     * 条件查询数据
+     * @param array $where
+     * @return array|mixed
+     */
+    public function getNormalAccountByWhere($where)
+    {
+        $result = NormalAccount::get($where);
+        return $result;
+    }
+
+    /**
      * 根据账号查询userId
      * @param $account
      * @return int
      */
-    public static function normalAccount2UserId($account)
+    public function normalAccount2UserId($account)
     {
         $normalAccount = RepositoryClass::NormalAccount()->findOneBy(['login' => $account]);
         if (empty($normalAccount)) return 0;
@@ -64,7 +93,7 @@ class NormalAccountRepository extends EntityRepository
      * @param integer   $userId 用户id
      * @return string       用户账号
      */
-    public static function userId2NormalAccount($userId)
+    public function userId2NormalAccount($userId)
     {
         $normalAccount = RepositoryClass::NormalAccount()->findOneBy(['userId' => $userId]);
         if (empty($normalAccount)) return 0;

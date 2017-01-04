@@ -89,7 +89,7 @@ class main extends Hprose\Swoole\WebSocket\Server
                 $refDoc = $refObj->getDocComment();
                 $authMatches = [];
                 preg_match('/@default\s+(enable|disable|)/i', $refDoc, $authMatches);
-                if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
+                if (empty($authMatches[1]) || ('disable' == strtolower($authMatches[1]))) continue;
 
                 if (count($refObjMethod) > 0) {
                     foreach ($refObjMethod as $methodInfo) {
@@ -100,7 +100,7 @@ class main extends Hprose\Swoole\WebSocket\Server
 
                         $authMatches = [];
                         preg_match('/@default\s+(enable|disable|)/i', $methodDoc, $authMatches);
-                        if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
+                        if (empty($authMatches[1]) || ('disable' == strtolower($authMatches[1]))) continue;
                         if (false !== stripos($methodInfo, 'asyncRet')) continue;
                         $isAsync = (false !== stripos($methodInfo, 'async'));
                         $apiName = $pathInfo['filename'].'_'.$methodInfo->name;
@@ -133,8 +133,6 @@ class main extends Hprose\Swoole\WebSocket\Server
         $method = strtolower(substr($call, $delimiter + 1));
         $realCall = [$class, $method];
         Factory::logger('action')->addDebug('input',[$method, func_get_args()]);
-
-
         Err::setLastErr(0);     //初始化error code
         if(Factory::getConfig('swoole', 'debug') ) $execStart = microtime(true) * 1000;
 

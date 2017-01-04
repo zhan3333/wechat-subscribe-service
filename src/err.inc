@@ -1,6 +1,9 @@
 <?php
 const E_SYS_ERROR = 101;
 const E_NETWORK_ANOMALY = 102;
+const E_UPDATE_DATA_FAIL = 103;
+const E_ADD_DATA_FAIL = 104;
+const E_PARAM_ERROR = 105;
 
 const E_FILE_OR_DIR_NOT_EXIST = 1000;
 const E_FILE_NOT_EXIST = 1001;
@@ -23,6 +26,14 @@ const E_USER_NO_LOGIN = 2006;       // 用户未登陆
 const E_USER_ACCOUNT_ERROR = 2007;  // 账号填写错误
 const E_USER_PASSWD_ERROR = 2008;       // 密码填写错误
 const E_USER_NOT_IS_ADMIN = 2009;       // 非管理员无法执行此操作
+const E_USER_NOT_IS_SUPER_ADMIN = 2010; // 非超级管理员
+const E_USER_NOT_IS_NORMAL = 2011;      // 非普通用户
+const E_USER_ACCOUNT_ALREADY_USE = 2012;    // 账号已被使用
+const E_USER_ACCOUNT_NOT_EXIST = 2012;
+const E_USER_ACCOUNT_NOT_IS_NORMAL = 2013;  // 账号不为普通用户
+const E_USER_ACCOUNT_NOT_IS_WECHAT = 2014;  // 账号不为微信用户
+const E_USER_CAN_NOT_CHANGE_SUPER_ADMIN_PASSWD = 2015;
+const E_USER_CAN_NOT_CHANGE_NOT_IS_NORMAL_ACCOUNT_PASSWD = 2016;
 
 // Api错误  3000~4000
 const E_API_KEY_NOT_ALLOW_AIR = 3000;       // key不允许为空
@@ -50,7 +61,9 @@ $err = [
     0 => '执行成功',
     E_SYS_ERROR => '系统错误',
     E_NETWORK_ANOMALY => '网络异常',
-
+    E_UPDATE_DATA_FAIL => '修改数据失败',
+    E_ADD_DATA_FAIL => '添加数据失败',
+    E_PARAM_ERROR => '参数错误',
 
     // 文件相关错误
     E_FILE_OR_DIR_NOT_EXIST => '文件或文件夹不存在',
@@ -74,6 +87,14 @@ $err = [
     E_USER_ACCOUNT_ERROR => '账号填写错误',
     E_USER_PASSWD_ERROR  => '密码填写错误',
     E_USER_NOT_IS_ADMIN => '非管理员无法执行此操作',
+    E_USER_NOT_IS_SUPER_ADMIN => '非超级管理员无法执行此操作',
+    E_USER_NOT_IS_NORMAL => '非普通用户无法执行此操作',
+    E_USER_ACCOUNT_ALREADY_USE => '账号已被使用',
+    E_USER_ACCOUNT_NOT_EXIST => '账号不存在',
+    E_USER_ACCOUNT_NOT_IS_NORMAL => '账号类型不为普通类型',
+    E_USER_ACCOUNT_NOT_IS_WECHAT => '账号不为微信用户',
+    E_USER_CAN_NOT_CHANGE_SUPER_ADMIN_PASSWD => '无法修改超级管理员密码',
+    E_USER_CAN_NOT_CHANGE_NOT_IS_NORMAL_ACCOUNT_PASSWD => '无法修改非普通用户密码',
 
     // Api错误  3000~4000
     E_API_KEY_NOT_ALLOW_AIR => 'api key 不允许为空',

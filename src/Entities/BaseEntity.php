@@ -247,7 +247,7 @@ class BaseEntity
             }
         } else {
             $qb->andWhere("$entityAbbr.$prop = :$prop");
-            $qb->setParameter($entityAbbr, $val, $type);
+            $qb->setParameter($prop, $val, $type);
         }
     }
 
@@ -338,7 +338,7 @@ class BaseEntity
         try {
             $className = self::getClassName();
             $abbr = self::ABBR;
-            $qb = self::qb();
+            $qb = self::qb($className);
             $qb->update();
             // where
             foreach ($where as $key => $value) {
@@ -355,9 +355,8 @@ class BaseEntity
             foreach ($filterData as $key => $val) {
                 if (!property_exists($className, $key)) continue;
                 $qb->set("$abbr.$key", ":$key");
-                $qb->setParameter($key, $val);
+                $qb->setParameter($key, $val, self::getFieldType($key, $className));
             }
-
             $qb->getQuery()->execute();
             return true;
         } catch (\Exception $e) {
@@ -381,7 +380,7 @@ class BaseEntity
         $shows = is_array($shows)?$shows:[];
         $className = self::getClassName();
         $abbr = self::ABBR;
-        $qb = self::qb();
+        $qb = self::qb($className);
         // where
         foreach ($where as $key => $value) {
             if (!property_exists($className, $key)) continue;
@@ -435,7 +434,7 @@ class BaseEntity
         $hides = is_array($hides)?$hides:[];
         $className = self::getClassName();
         $abbr = self::ABBR;
-        $qb = self::qb();
+        $qb = self::qb($className);
         $identifier = self::getIdentifierFieldName($className);     // 主键名称
         // 设置查询条件
         $qb->where("$abbr.$identifier = :$identifier");

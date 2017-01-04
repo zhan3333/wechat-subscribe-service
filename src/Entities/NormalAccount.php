@@ -15,7 +15,7 @@ namespace App\Entities;
  * @Table(name="NormalAccount")
  * @Entity(repositoryClass = "NormalAccountRepository")
  */
-class NormalAccount
+class NormalAccount extends BaseEntity
 {
     /**
      * @Id

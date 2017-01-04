@@ -10,6 +10,7 @@ namespace App\Service;
 
 
 use App\Entities\ApiInfo;
+use App\Entities\NormalAccount;
 use App\Entities\Student;
 use App\Err;
 use App\Factory;
@@ -17,6 +18,11 @@ use App\RepositoryClass;
 use FilesystemIterator;
 use Hprose\Swoole\WebSocket\Client;
 
+/**
+ * Class Test
+ * @package App\Service
+ * @default enable
+ */
 class Test
 {
     /**
@@ -37,7 +43,7 @@ class Test
             $refDoc = $refObj->getDocComment();
             $authMatches = [];
             preg_match('/@default\s+(enable|disable|)/i', $refDoc, $authMatches);
-            if (!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]))) continue;
+            if (empty($authMatches[1]) || ('disable' == strtolower($authMatches[1]))) continue;
 
             $refObjMethod = $refObj->getMethods(\ReflectionMethod::IS_STATIC);
             if (count($refObjMethod ) > 0) {
@@ -51,7 +57,7 @@ class Test
                     $authMatches = [];
 
                     preg_match('/@default\s+(enable|disable|)/i', $methodDoc, $authMatches);
-                    if(!empty($authMatches[1]) && ('disable' == strtolower($authMatches[1]) ) ) continue;
+                    if(empty($authMatches[1]) || ('disable' == strtolower($authMatches[1]) ) ) continue;
 
                     $methodData = &$classData[$methodInfo->name];
                     $methodParam = $methodInfo->getParameters();
@@ -508,4 +514,28 @@ class Test
         ];
     }
 
+    /**
+     * @default enable
+     * @return array
+     */
+    public static function testQuery()
+    {
+        $result = NormalAccount::get(['userId' => 1]);
+        return [
+            'result' => $result
+        ];
+    }
+
+    /**
+     * @default enable
+     * @return array
+     */
+    public static function testGetList()
+    {
+        $totla = $filter = 0;
+        $result = NormalAccount::getList($totla, $filter);
+        return [
+            'table' => $result
+        ];
+    }
 }

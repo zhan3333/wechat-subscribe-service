@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 /**
  * Class Wechat
  * @package App\Service
- * @default disable
+ * @default enable
  */
 class Wechat extends Base
 {
