@@ -716,7 +716,7 @@ class Wechat extends Base
 
     /**
      * 根据素材id，获取素材信息
-     * @default enable
+     * @default disable
      * @param integer   $id    素材id
      * @return array|bool
      */
@@ -733,7 +733,7 @@ class Wechat extends Base
 
     /**
      * 获取素材列表
-     * @default enable
+     * @default disable
      * @param string $type 素材类型，图片（image）、视频（video）、语音 （voice）、图文（news）
      * @param integer $offset 从全部素材的该偏移位置开始返回，可选，默认0，0表示从第一个素材返回
      * @param integer $count 返回素材的数量，可选，默认20，取值在1到20之间
@@ -770,7 +770,7 @@ class Wechat extends Base
 
     /**
      * 删除一条素材信息
-     * @default enable
+     * @default disable
      * @param $id
      */
     public static function deleteMaterialById($id)
@@ -781,7 +781,7 @@ class Wechat extends Base
 
     /**
      * 获取素材计数
-     * @default enable
+     * @default disable
      * @return array
      * <pre>
      * [
