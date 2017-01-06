@@ -547,7 +547,7 @@ class Wechat extends Base
     public static function getPaymentOrder($openid, $payPrice)
     {
         $userId = self::getClientUserId();
-        if (empty($userId)) return Err::setLastErr(E_NO_LOGIN);
+        if (empty($userId)) return Err::setLastErr(E_USER_NO_LOGIN);
         if (empty($openid)) return Err::setLastErr(E_NO_INCOMING_OPENID);   // 未传入openid
         if (Factory::getConfig('debugSwitch', 'wechatPayOpenidMapping')) {
             $testOpenid = $openid;
@@ -603,7 +603,7 @@ class Wechat extends Base
 
     private static function getPaymentOrderBody($data)
     {
-        return "YY夺宝充值 " . $data['payPrice']/100 . ' 幸运币';
+        return "充值" . $data['payPrice']/100 . '元';
     }
 
     /**
