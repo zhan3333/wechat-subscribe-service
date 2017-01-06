@@ -8,7 +8,6 @@
     }
   ],
   "require": {
-    "php": ">=5.6.0",
     "monolog/monolog": "1.21.0",
     "doctrine/orm": "2.5.5",
     "hprose/hprose-swoole": "2.0.7",
@@ -21,7 +20,11 @@
     "doctrine/mongodb-odm": "1.1.2",
     "jenssegers/agent": "2.3.3",
     "geoip2/geoip2": "2.4.4",
-    "rmccue/Requests": "1.7.0"
+    "rmccue/Requests": "1.7.0",
+    "php": ">=5.6.0",
+    "ext-swoole": ">=1.8.9",
+    "ext-donkeyid": ">=1.0.0",
+    "ext-redis": ">=2.2.5"
   },
   "autoload": {
     "psr-4" : {
