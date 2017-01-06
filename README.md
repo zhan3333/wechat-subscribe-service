@@ -7,7 +7,12 @@
 - php5.6
 
 ## 软件
-- composer 包管理器
+- [composer](http://docs.phpcomposer.com) 包管理器
+
+## php扩展
+- [donkeyid](https://github.com/osgochina/donkeyid)
+- [swoole](http://www.swoole.com/)
+- [phpredis](https://github.com/phpredis/phpredis)
 
 ---
 # 介绍
