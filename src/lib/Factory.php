@@ -340,4 +340,16 @@ class Factory
         }
         return self::$objects[$objectId];
     }
+
+    /**
+     * @return \Faker\Generator
+     */
+    public static function Faker()
+    {
+        $objectId = __FUNCTION__;
+        if (empty(self::$objects[$objectId])) {
+            self::$objects[$objectId] = \Faker\Factory::create('zh_ch');
+        }
+        return self::$objects[$objectId];
+    }
 }

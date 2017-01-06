@@ -57,6 +57,9 @@ const E_WECHAT_PAYMENT_GET_ORDER_FAIL = 200007;     // 生成微信支付订单�
 const E_WECHAT_INVALID_CODE = 200008;               // 无效的code
 const E_WECHAT_CODE_LOGIN_FAIL = 200009;            // code码登陆失败
 const E_WECHAT_RETURN_ERROR = 200010;               // 微信返回错误
+const E_MATERIAL_TYPE_ERROR = 200011;
+const E_MATERIAL_OFFSET_ERROR = 200012;
+const E_MATERIAL_COUNT_ERROR = 200013;
 
 $err = [
     0 => '执行成功',
@@ -120,5 +123,8 @@ $err = [
     E_WECHAT_INVALID_CODE           => '无效的code',
     E_WECHAT_CODE_LOGIN_FAIL        => 'code码登陆失败',
     E_WECHAT_RETURN_ERROR => '微信返回错误',
+    E_MATERIAL_TYPE_ERROR => '类型填写错误',
+    E_MATERIAL_OFFSET_ERROR => '偏移值错误',
+    E_MATERIAL_COUNT_ERROR => '返回素材数量填写错误',
 ];
 return $err;

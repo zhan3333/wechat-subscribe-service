@@ -363,7 +363,7 @@ class Wechat extends Base
 
     /**
      * 添加一个菜单
-     * @default enable
+     * @default disable
      * @param array $buttons
      * @return array
      */
@@ -389,7 +389,7 @@ class Wechat extends Base
 
     /**
      * 查询菜单信息
-     * @default enable
+     * @default disable
      */
     public static function queryMenu()
     {
@@ -409,7 +409,7 @@ class Wechat extends Base
 
     /**
      * 删除菜单配置/根据id删除一个按钮
-     * @default enable
+     * @default disable
      * @param int $menuId
      * @return bool
      */
@@ -441,7 +441,7 @@ class Wechat extends Base
 
     /**
      * 接收微信支付回调信息
-     * @default enable
+     * @default disable
      */
     public static function paymentNotify()
     {
@@ -539,7 +539,7 @@ class Wechat extends Base
 
     /**
      * 获取微信支付订单
-     * @default enable
+     * @default disable
      * @param $openid
      * @param $payPrice integer 支付金额，单位为分
      * @return array
@@ -647,7 +647,7 @@ class Wechat extends Base
 
     /**
      * 获取永久二维码
-     * @default enable
+     * @default disable
      * @param $content  mixed
      * @return array
      */
@@ -710,5 +710,130 @@ class Wechat extends Base
             Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
             return ['openid' => $openid];
         }
+    }
+    
+    // 素材管理 material  需要通过微信认证
+
+    /**
+     * 根据素材id，获取素材信息
+     * @default enable
+     * @param integer   $id    素材id
+     * @return array|bool
+     */
+    public static function getMaterialById($id)
+    {
+        $id = filter_var($id, FILTER_VALIDATE_INT);
+        if (empty($id)) return Err::setLastErr(E_PARAM_ERROR);
+        $material = self::getMaterialObj();
+        $resource = $material->get($id);
+        return [
+            'result' => $resource
+        ];
+    }
+
+    /**
+     * 获取素材列表
+     * @default enable
+     * @param string $type 素材类型，图片（image）、视频（video）、语音 （voice）、图文（news）
+     * @param integer $offset 从全部素材的该偏移位置开始返回，可选，默认0，0表示从第一个素材返回
+     * @param integer $count 返回素材的数量，可选，默认20，取值在1到20之间
+     * @return array|bool
+     * <pre>
+     *
+     * </pre>
+     */
+    public static function getMaterialTable($type, $offset = 0, $count = 20)
+    {
+        $allowTypes = ['image', 'video', 'voice', 'news'];
+        if (empty($offset)) $offset = 0;
+        if (empty($count)) $count = 20;
+
+        $type = filter_var($type, FILTER_SANITIZE_STRING);
+        $offset = filter_var($offset, FILTER_VALIDATE_INT);
+        $count = filter_var($count, FILTER_VALIDATE_INT);
+
+        if (empty($type)) return Err::setLastErr(E_MATERIAL_TYPE_ERROR);
+        if (false === $offset) return Err::setLastErr(E_MATERIAL_OFFSET_ERROR);
+        if (empty($count)) return Err::setLastErr(E_MATERIAL_COUNT_ERROR);
+        if ($count < 1 || $count > 20) return Err::setLastErr(E_MATERIAL_COUNT_ERROR);
+        if ($offset < 0) return Err::setLastErr(E_MATERIAL_OFFSET_ERROR);
+        if (false === array_search($type, $allowTypes)) return Err::setLastErr(E_MATERIAL_TYPE_ERROR);
+        $material = self::getMaterialObj();
+
+        $stats = self::getMaterialStats();
+        $list = $material->lists($type, $offset, $count);
+        return [
+            'table' => $list,
+            'stats' => $stats
+        ];
+    }
+
+    /**
+     * 删除一条素材信息
+     * @default enable
+     * @param $id
+     */
+    public static function deleteMaterialById($id)
+    {
+        $material = self::getMaterialObj();
+        $material->delete($id);
+    }
+
+    /**
+     * 获取素材计数
+     * @default enable
+     * @return array
+     * <pre>
+     * [
+     *  'result' => [
+     *      'voice_count' => 0,     // 语言数量
+     *      'video_count' => 0,     // 视频数量
+     *      'image_count' => 0,     // 图片数量
+     *      'news_count' => 0       // 图文数量
+     *  ]
+     * ]
+     * </pre>
+     */
+    public static function getMaterialCount()
+    {
+        return [
+            'result' => self::getMaterialStats()
+        ];
+    }
+
+    /**
+     * 获取素材计数
+     * @return array
+     * <pre>
+     * [
+     *  'voice_count' => 0,     // 语言数量
+     *  'video_count' => 0,     // 视频数量
+     *  'image_count' => 0,     // 图片数量
+     *  'news_count' => 0       // 图文数量
+     * ]
+     * </pre>
+     */
+    private static function getMaterialStats()
+    {
+        try {
+            $material = self::getMaterialObj();
+            $stats = $material->stats();
+            return $stats;
+        } catch (\Exception $e) {
+            Factory::logger('error')->addError(__CLASS__, [__FUNCTION__, __LINE__, $e]);
+            return [];
+        }
+
+    }
+
+    /**
+     * 获取永久素材对象
+     * @return \EasyWeChat\Material\Material
+     */
+    private static function getMaterialObj()
+    {
+        $app = Factory::wechat();
+        $material = $app->material;
+        return $material;
     }
 }

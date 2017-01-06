@@ -453,23 +453,22 @@ class BaseEntity
                 } else {
                     $qb->select($selectArr);
                 }
-                $result = $qb->getQuery()->getOneOrNullResult();
+                $result = $qb->getQuery()->getArrayResult();
+                if (!empty($result)) $result = reset($result);
             }
             if (is_scalar($shows)) {
                 if (!property_exists($className, $shows)) throw new \Exception("shows $shows is scalar, but not exist in class $className");
-                $result = $qb->select("$abbr.$shows")->getQuery()->getOneOrNullResult();
+                $result = $qb->select("$abbr.$shows")->getQuery()->getArrayResult();
+                if (!empty($result)) $result = reset($result);
                 $result = array_shift($result);
             }
         } else {
             $qb->select($abbr);
-            $result = $qb->getQuery()->getOneOrNullResult();
+            $result = $qb->getQuery()->getArrayResult();
+            if (!empty($result)) $result = reset($result);
         }
         if (!empty($result) && is_array($result)) {
             if (!empty($hides)) {
-                Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                    $hides, $result, gettype($result)
-                ]);
-
                 $result = array_diff_key($result, array_flip($hides));
             }
         }

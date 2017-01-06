@@ -116,4 +116,130 @@ class Util
         $id = dk_get_next_id();
         return $id;
     }
+
+    /**
+     * 保存上传的文件
+     * @return array|bool
+     */
+    public static function saveFile()
+    {
+        $file = $_FILES;
+        if (empty($file)) return false;
+        $fileInfoRet = [];
+        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+            $file
+        ]);
+        foreach ($file as $item) {
+            $fileUpload = $item;
+            $uploadCfg = Factory::getConfig('app', 'upload');
+            $path = $uploadCfg['base_dir'];
+            $mimeType = $fileUpload['type'];
+            $fileSize = $fileUpload['size'];
+            if (self::mime2Suffix($mimeType)) {
+                $fileType = self::mime2Suffix($mimeType);   // 使用转换后的名称
+            } else {
+                $pos = stripos($fileUpload['name'], '.');
+                if ($pos) ++$pos;
+                $fileType = substr($fileUpload['name'], $pos);;  // 使用文件扩展名
+            }
+            //检查文件夹是否存在
+            $subDir = date('Ym/d');
+            if (!is_dir($path.$subDir) && (false === mkdir($path.$subDir, 0777, true))) return false;
+            //如果已存在此文件，不断随机直到产生一个不存在的文件名
+            $filename = self::randTime();
+            $fullPath = $path.$subDir.DIRECTORY_SEPARATOR.$filename.'.'.$fileType;
+            for (; is_file($fullPath);) {
+                $filename = self::randTime();
+                $fullPath = $path.$subDir.DIRECTORY_SEPARATOR.$filename.'.'.$fileType;
+            }
+            $result = [
+                'size' => $fileSize,
+                'suffix' => $fileType,
+                'mime' => $mimeType,
+                'name' => $filename.'.'.$fileType,
+                'path' => "{$uploadCfg['base_url']}{$subDir}/{$filename}.{$fileType}",
+                'fullPath' => $fullPath,
+                'oldName' => $fileUpload['name']
+            ];
+            //移动文件
+
+            $moveRet = move_uploaded_file($fileUpload["tmp_name"], $fullPath);
+            if ($moveRet) {
+                $fileInfoRet[] = $result;
+            } else {
+                $fileInfoRet[] = false;
+            }
+        }
+        return $fileInfoRet;
+    }
+
+    /**
+     * 将mime转换为正常的文件后缀名
+     * @param $mime string
+     * @return bool
+     */
+    public static function mime2Suffix($mime)
+    {
+        $data = [
+            'audio/3gpp' => '3gpp',
+            'video/3gpp' => '3gpp',
+            'audio/ac3' => 'ac3',
+            'allpication/vnd.ms-asf' => 'asf',
+            'audio/basic' => 'au',
+            'text/css' => 'css',
+            'text/csv' => 'csv',
+//            'application/msword' => false,  // doc or dot
+            'application/xml-dtd' => 'dtd',
+            'image/vnd.dwg' => 'dwg',
+            'image/vnd.dxf' => 'dxf',
+            'image/gif' => 'gif',
+            'text/html' => false,  // html or htm
+            'image/jp2' => 'jp2',
+            'image/jpeg' => false, // jpeg or jpe or jpg
+            'text/javascript' => 'js',
+            'application/javascript' => 'js',
+            'application/json' => 'json',
+            'audio/mpeg' => false,  // mp2 ro mo3
+            'video/mpeg' => false,  // mp2 or  mpeg or mpg
+            'audio/mp4' => 'mp4',
+            'application/vnd.ms-project' => 'mpp',
+            'application/ogg' => 'ogg',
+            'audio/ogg' => 'ogg',
+            'application/pdf' => 'pdf',
+            'image/png' => 'png',
+            'application/vnd.ms-powerpoint' => false,   // pot or pps or ppt
+            'application/rtf' => 'rtf',
+            'text/rtf' => 'rtf',
+            'image/vnd.svf' => 'svf',
+            'image/tiff' => false,      // tiff or tif
+            'text/plain' => 'txt',
+            'application/vnd.ms-works' => false,    // wdb or wps
+            'application/xhtml+xml' => 'xhtml',
+            'application/vnd.ms-excel' => false,    // xlc or xlm or xls or xlt or xlw
+            'text/xml' => 'xml',
+            'application/xml' => 'xml',
+            'aplication/zip' => 'zip',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'application/msword' => 'doc',
+        ];
+        if (!empty($data[$mime])) return $data[$mime];
+        else return false;
+    }
+
+    /**
+     * 按UNIX时间戳产生随机数
+     *
+     * @param $rand_length
+     *
+     * @return string
+     */
+    public static function randTime($rand_length = 6)
+    {
+        list($usec, $sec) = explode(" ", microtime());
+        $min = intval('1'.str_repeat('0', $rand_length - 1));
+        $max = intval(str_repeat('9', $rand_length));
+
+        return substr($sec, -5).((int)$usec * 100).rand($min, $max);
+    }
 }

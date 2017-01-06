@@ -15,6 +15,7 @@ use App\Entities\Student;
 use App\Err;
 use App\Factory;
 use App\RepositoryClass;
+use App\Util;
 use FilesystemIterator;
 use Hprose\Swoole\WebSocket\Client;
 
@@ -240,84 +241,6 @@ class Test
     }
 
     /**
-     * 测试消息推送
-     */
-    public static function testPush()
-    {
-        try {
-            $serv = Factory::swoole();
-            $serv->publish('time');
-            $serv->push('time', microtime(true));
-        } catch (\Exception $e) {
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $e
-            ]);
-        }
-    }
-
-    public static function testPushClient()
-    {
-        $client = new Client("ws://127.0.0.1:2001");
-        $count = 0;
-        $client->subscribe('time', function($date) use ($client, &$count) {
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $date
-            ]);
-
-            if (++$count > 10) {
-                $client->unsubscribe('time');
-                swoole_event_exit();
-            }
-            else {
-                var_dump($date);
-            }
-        });
-    }
-
-    public static function getTestById($id)
-    {
-        $result = RepositoryClass::Test()->find($id);
-        return [
-            'result' => $result
-        ];
-    }
-
-    public static function addTest($text)
-    {
-        try {
-            $Test = new \App\Entities\Test();
-            $Test->setText($text);
-            $em = Factory::em();
-            $em->persist($Test);
-            $em->flush();
-        } catch (\Exception $e) {
-            Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-                $e
-            ]);
-
-        }
-    }
-
-    public static function json_encode($text)
-    {
-        return [
-            'result' => json_encode($text)
-        ];
-    }
-
-    public static function json_decode($text)
-    {
-        return [
-            'result' => json_decode($text)
-        ];
-    }
-
-    public static function returnErr()
-    {
-        return Err::setLastErr(E_PATH_IS_ILLEGAL);
-    }
-
-    /**
      * 测试四元素检测模块
      * 建议缓冲查询结果
      * @doc https://market.aliyun.com/products/57000002/cmapi011455.html#sku=yuncode545500005
@@ -359,41 +282,6 @@ class Test
             ]);
             return Err::setLastErr(E_SYS_ERROR);    // 系统错误
         }
-    }
-
-    /**
-     * 测试utf8_encode 函数
-     * @param $name
-     * @return string
-     */
-    public static function test_urlencode($name)
-    {
-        return urlencode($name);
-    }
-
-    public static function testRequests()
-    {
-        $headers = ['Accept' => 'application/json'];
-        $options = [];
-        $request = \Requests::get('http://www.baidu.com', $headers, $options);
-        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
-            $request->status_code, $request->body, $request->headers
-        ]);
-
-    }
-
-    public static function testExplode()
-    {
-        $str = 'qrscene_{\"anchorId\":\"25\",\"type\":\"anchor\"}';
-        $str2 = '{\"anchorId\":\"25\",\"type\":\"anchor\"}';
-        $ret = explode('qrscene_', $str);
-        $ret2 = explode('qrscene_', $str2);
-        $ret3 = stripos($str, 'qrscene_');
-        return [
-            'ret1' => $ret,
-            'ret2' => $ret2,
-            'ret3' => $ret3
-        ];
     }
 
     /**
@@ -514,17 +402,6 @@ class Test
         ];
     }
 
-    /**
-     * @default enable
-     * @return array
-     */
-    public static function testQuery()
-    {
-        $result = NormalAccount::get(['userId' => 1]);
-        return [
-            'result' => $result
-        ];
-    }
 
     /**
      * @default enable
@@ -550,6 +427,92 @@ class Test
         $userId = $wr->openid2UserId($openid);
         return [
             'userId' => $userId
+        ];
+    }
+
+    /**
+     * @default enable
+     * @param int $num
+     * @return array
+     */
+    public static function testVote($num = 1)
+    {
+        $result = [];
+        for($i = 0; $i < $num; $i ++) {
+            $result[] = self::vote();
+        }
+        return [
+            'voteResult' => $result
+        ];
+    }
+
+    private static function vote()
+    {
+        $redis = Factory::redis();
+        $redisKey = 'fenghe.vote';
+        if (false === $redis->get($redisKey)) {
+            $redis->set($redisKey, 0);
+        }
+        $redis->incr($redisKey);
+        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+            $redis->get($redisKey)
+        ]);
+
+        $openid = self::getOpenid();
+        $url = "http://hbpsbc.butterfly.mopaasapp.com/voteSubmit";
+        $headers = [];
+        $data = [
+            'target_guid' => 7,
+            'open_id' => $openid
+        ];
+        $options = [
+            'useragent' => Factory::Faker()->userAgent
+        ];
+        $request = \Requests::post($url, $headers, $data, $options);
+        $body = $request->body;
+        Factory::logger('zhan')->addInfo(__CLASS__. '_' . __FUNCTION__, [__LINE__,
+            Util::obj2Arr($request)
+        ]);
+
+        return $body;
+    }
+
+    private static function getOpenid()
+    {
+        $openid = '7Um3Yhv5p/bOfbjNdmTIsjqPHo4eVjKud02Cj5RK7M0';
+        $first = substr($openid, 0, 6);
+        $endLen = strlen($openid) - 6;
+        return $first . Util::random($endLen);
+    }
+
+    /**
+     * @default enable
+     */
+    public static function testRequest()
+    {
+        $openid = self::getOpenid();
+        $url = "http://z.zhannnnn.top/Test_testResponse";
+        $headers = [];
+        $data = [
+            'target_guid' => 7,
+            'open_id' => $openid
+        ];
+        $options = [
+            'useragent' => Factory::Faker()->userAgent
+        ];
+        $request = \Requests::post($url, $headers, $data, $options);
+        return [
+            'result' => $request->body
+        ];
+    }
+
+    /**
+     * @default enable
+     */
+    public static function testResponse()
+    {
+        return [
+            'result' => Util::obj2Arr($_SERVER)
         ];
     }
 }
